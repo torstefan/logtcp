@@ -3,6 +3,8 @@
 
 Small perl script that is a wrapper for tcpping. Logs downtime, and latency deviations to STDOUT.
 
+TCPPing is made by http://www.vdberg.org/~richard/
+
 Prerequisites
 	sudo apt-get install tcptraceroute
 	cd /usr/bin/
