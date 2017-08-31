@@ -1,7 +1,7 @@
 
 # Released under MIT License 2017
 
-Small perl script that is a wrapper for hping3. Logs downtime, and latency deviations to STDOUT.
+Small perl script that is a wrapper for hping3. Logs downtime, and latency deviations to STDOUT. Ergo no logging when things are okay.
 
 Prerequisites
 	sudo apt-get install hping3
