@@ -64,8 +64,8 @@ sub check_for_rtt_spikes{
 
 		push @avg_ms, $ms; # push after all other things to not skew the average
 
-		print "$ms" if $DEBUG;
-		defined $a_per and $DEBUG ? printf  "+-%%%.1f " , $a_per : print ""; 
+		print "rtt=$ms " if $DEBUG;
+		defined $a_per ? printf  "avg_rtt=%.1f diff_rtt=%.1f%%\n" , $avg, $a_per : print "\n" if $DEBUG; 
 
 		if (defined $a_per and $a_per > $rtt_max  ) {
 			chomp(my $date = `date +%c`);
@@ -95,7 +95,6 @@ sub are_you_there{
 	}
 	
 	if ( $tp =~ m/\s0%\s/xm ) {
-		print "!" if $DEBUG;
 		if ( $down   ) {
 			chomp(my $date = `date +%c`);
 			my $ct = time;
