@@ -65,7 +65,7 @@ sub check_for_rtt_spikes{
 		push @avg_ms, $ms; # push after all other things to not skew the average
 
 		print "$ms" if $DEBUG;
-		defined $a_per and $DEBUG ? printf  "->%.1f " , $a_per : print ""; 
+		defined $a_per and $DEBUG ? printf  "+-%%%.1f " , $a_per : print ""; 
 
 		if (defined $a_per and $a_per > $rtt_max  ) {
 			chomp(my $date = `date +%c`);
