@@ -22,18 +22,21 @@ use strict;
 use warnings;
 use utf8;
 
-my $host = $ARGV[0] || '10.10.10.2';
-my $port = $ARGV[1] || '80';
-my $rtt_max = $ARGV[3] || '60';
+my $host = $ARGV[0] || '161.4.10.204';
+my $port = $ARGV[1] || '22';
+my $rtt_max = $ARGV[2] || '60'; # in % of avg rtt
+my $DEBUG = $ARGV[3] || '0';
 
+print "Usage: ./logtcp.pl <host> <port> [rtt_max_%_of_avg] [debug]\n./logtcp.pl 10.85.104.42 80 60 0\n" and exit(0) if $host =~ m/-h|--help/xm;
 
 my ($dt, $down_date, $down, @avg_ms);
 my $repeat = 2; my $i=0; my $last_time_of_rtt_spike = time; 
 
-print "TCP-Pinging ${host}:${port}\n";
+print "TCP-Pinging ${host}:${port} RTT_MAX: $rtt_max"; 
+$DEBUG ? print " DEBUG 1\n" : print "\n";
 
 while ( 1 ) {
-	my $tp = `tcpping -x1 -w 1 $host $port`;
+	my $tp = `sudo hping3 -c 1 -i 2 -S -p $port $host 2>&1 `;
 	
 	are_you_there($tp, $i);
 	check_for_rtt_spikes($tp);
@@ -46,7 +49,7 @@ while ( 1 ) {
 sub check_for_rtt_spikes{
 	my $tp = shift;
 
-	if ( $tp =~ m/]\s+(.*?)\sms/xm ) {
+	if ( $tp =~ m/rtt=(.*?)\sms/xm ) {
 		my $ms = $1;
 		my $avg_ms = 0;
 
@@ -60,6 +63,9 @@ sub check_for_rtt_spikes{
 		my $lat = sprintf "%.3fms %10.3fms %10.3f", $ms , $avg , $a_per if scalar @avg_ms;
 
 		push @avg_ms, $ms; # push after all other things to not skew the average
+
+		print "$ms" if $DEBUG;
+		defined $a_per and $DEBUG ? printf  "->%.1f " , $a_per : print ""; 
 
 		if (defined $a_per and $a_per > $rtt_max  ) {
 			chomp(my $date = `date +%c`);
@@ -75,23 +81,28 @@ sub are_you_there{
 	my $tp = shift;
 	my $i= shift;
 
-	if ( $tp =~ m/timeout/xm ) {
+
+	if ( $tp =~ m/\s100%\s/xm ) {	# 100% packet loss
+		print "." if $DEBUG;
 		chomp($down_date = `date +%c`) if ! $down;
 		$dt = time if ! $down;	
 		$down = 1;
 		
-		if ( $i <1 ) {
-			die "${host}:${port} not reachable\n";
-		}
+#		if ( $i <1 ) {
+#			die "${host}:${port} not reachable\n";
+#		}
 		
 	}
 	
-	if ( $tp !~ m/timeout/xm and $down ) {
-		chomp(my $date = `date +%c`);
-		my $ct = time;
+	if ( $tp =~ m/\s0%\s/xm ) {
+		print "!" if $DEBUG;
+		if ( $down   ) {
+			chomp(my $date = `date +%c`);
+			my $ct = time;
 
-		print "$down_date to $date ${host}:${port} down for ". ($ct - $dt)  ."s\n";	
-		$down = 0;
+			print "$down_date to $date ${host}:${port} down for ". ($ct - $dt)  ."s\n";	
+			$down = 0;
+		}
 	}
 
 }
