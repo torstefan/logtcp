@@ -5,5 +5,6 @@ Small perl script that is a wrapper for hping3. Logs downtime, and latency devia
 
 Prerequisites
 	sudo apt-get install hping3
+	User running logtcp.pl must have sudo with NOPASSWD: ALL in visudo
 Usage
 	perl logtcp.pl <ip> <port> [rtt_max_in_percentage_deviation] [debug]
