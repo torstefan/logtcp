@@ -22,12 +22,12 @@ use strict;
 use warnings;
 use utf8;
 
-my $host = $ARGV[0] || '161.4.10.204';
+my $host = $ARGV[0] || 'localhost';
 my $port = $ARGV[1] || '22';
 my $rtt_max = $ARGV[2] || '60'; # in % of avg rtt
 my $DEBUG = $ARGV[3] || '0';
 
-print "Usage: ./logtcp.pl <host> <port> [rtt_max_%_of_avg] [debug]\n./logtcp.pl 10.85.104.42 80 60 0\n" and exit(0) if $host =~ m/-h|--help/xm;
+print "Usage: ./logtcp.pl <host> <port> [rtt_max_%_of_avg] [debug]\n./logtcp.pl localhost 80 60 0\n" and exit(0) if $host =~ m/-h|--help/xm;
 
 my ($dt, $down_date, $down, @avg_ms);
 my $repeat = 2; my $i=0; my $last_time_of_rtt_spike = time; 
