@@ -21,13 +21,15 @@
 use strict;
 use warnings;
 use utf8;
+use File::Slurp;
 
 my $host = $ARGV[0] || 'localhost';
 my $port = $ARGV[1] || '22';
-my $rtt_max = $ARGV[2] || '60'; # in % of avg rtt
-my $DEBUG = $ARGV[3] || '0';
+my $filename = $ARGV[2] || undef;
+my $rtt_max = $ARGV[3] || '60'; # in % of avg rtt
+my $DEBUG = $ARGV[4] || '0';
 
-print "Usage: ./logtcp.pl <host> <port> [rtt_max_%_of_avg] [debug]\n./logtcp.pl localhost 80 60 0\n" and exit(0) if $host =~ m/-h|--help/xm;
+print "Usage: ./logtcp.pl <host> <port> [filename] [rtt_max_%_of_avg] [debug]\n./logtcp.pl localhost 80 60 file.log\n" and exit(0) if $host =~ m/-h|--help/xm;
 
 my ($dt, $down_date, $down, @avg_ms);
 my $repeat = 2; my $i=0; my $last_time_of_rtt_spike = time; 
@@ -70,7 +72,9 @@ sub check_for_rtt_spikes{
 		if (defined $a_per and $a_per > $rtt_max  ) {
 			chomp(my $date = `date +%c`);
 			my $t_rtt = time;
-			printf "%s >>>> RTT spike of %4.1f%% , %6.3fms , avg %.3fms, last spike %5ds ago\n", $date, $a_per, $ms, $avg, ($t_rtt - $last_time_of_rtt_spike);
+			my $out = sprintf "%s >>>> RTT spike of %4.1f%% , %6.3fms , avg %.3fms, last spike %5ds ago\n", $date, $a_per, $ms, $avg, ($t_rtt - $last_time_of_rtt_spike);
+			print $out;
+			write_file($filename, { append => 1  }, $out ) if defined $filename;
 			pop @avg_ms; # Remove spike latency , as not to skew to much		
 			$last_time_of_rtt_spike = time;
 		}
@@ -99,7 +103,11 @@ sub are_you_there{
 			chomp(my $date = `date +%c`);
 			my $ct = time;
 
-			print "$down_date to $date ${host}:${port} down for ". ($ct - $dt)  ."s\n";	
+			my $out =  "$down_date to $date ${host}:${port} down for ". ($ct - $dt)  ."s\n";	
+			print $out;
+
+			write_file($filename, { append => 1  }, $out ) if defined $filename;
+
 			$down = 0;
 		}
 	}
